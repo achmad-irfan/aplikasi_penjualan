@@ -5,17 +5,17 @@ from datetime import datetime
 import streamlit as st
 import rupiah
 
-def cetak_struk(df_cart, total_bayar, nama_file="struk.pdf"):
+def cetak_struk(df_cart, grand_total, uang_tunai,kembalian,nama_file="struk.pdf"):
     # Defini ukuran struk
     lebar = 80 * mm
     tinggi = 200 * mm
     buffer= BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=(lebar, tinggi))
     
-    y= tinggi - 10*mm
+    y= tinggi - 15*mm
     #Judul
    
-    pdf.setFont("Helvetica-Bold", 14)
+    pdf.setFont("Helvetica-Bold", 10)
     pdf.drawCentredString(lebar/2, y, "TOKO MAKMUR SEJAHTERA")
     y -= 6*mm
     pdf.drawCentredString(lebar/2, y, "Arjosari, Kota Malang")
@@ -48,13 +48,22 @@ def cetak_struk(df_cart, total_bayar, nama_file="struk.pdf"):
     for i, row in df_cart.iterrows():
         pdf.drawString(5*mm, y, str(row["nama_barang"]))
         pdf.drawString(25*mm, y, str(row["qty"]))
-        pdf.drawString(30*mm, y, f"{rupiah.format_rp(row['harga_satuan'])}")
+        pdf.drawString(30*mm, y, f"{rupiah.format_rp(row['harga'])}")
         pdf.drawString(47.5*mm, y, f"{int(row['diskon'])}%")
         pdf.drawString(60*mm, y, f"{rupiah.format_rp(row['after_diskon'])}")
         y -= 5*mm
-
-    y-=5*mm
-    pdf.setFont("Helvetica-Bold", 12)
+        
+    # Total Harga
+    y -=4*mm
+    pdf.drawRightString(lebar- 10*mm,y, f"Total Harga : {rupiah.format_rp(grand_total)}")
+    y -= 5*mm
+    pdf.drawRightString(lebar- 10*mm,y, f"Uang Tunai : {rupiah.format_rp(uang_tunai)}")
+    y -= 5*mm
+    pdf.drawRightString(lebar- 10*mm,y, f"Uang Kembalian : {rupiah.format_rp(kembalian)}")
+    
+    
+    y-=15*mm
+    pdf.setFont("Helvetica-Bold", 10)
     pdf.drawCentredString(lebar/2, y, "Terima kasih telah Berbelanja")
     
     

@@ -155,7 +155,7 @@ def penjualan():
                     st.session_state.cart.clear()
                     
                     # panggil program struk
-                    struk.cetak_struk(df_cart, kembalian)
+                    struk.cetak_struk(df_cart, grand_total,st.session_state.uang_tunai, kembalian)
 
            
 
