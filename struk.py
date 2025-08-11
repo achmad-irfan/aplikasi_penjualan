@@ -3,9 +3,14 @@ from reportlab.lib.units import mm
 from io import BytesIO
 from datetime import datetime
 import streamlit as st
-import rupiah
+import utils
 
-def cetak_struk(df_cart, grand_total, uang_tunai,kembalian,nama_file="struk.pdf"):
+def cetak_struk(df_cart, grand_total, harga_diskon, metode, 
+                uang_tunai=None, 
+                kembalian=None, sumber=None, 
+                nomor_kartu=None,
+                aproval_edc=None,
+                nama_file="struk.pdf"):
     # Defini ukuran struk
     lebar = 80 * mm
     tinggi = 200 * mm
@@ -48,20 +53,53 @@ def cetak_struk(df_cart, grand_total, uang_tunai,kembalian,nama_file="struk.pdf"
     for i, row in df_cart.iterrows():
         pdf.drawString(5*mm, y, str(row["nama_barang"]))
         pdf.drawString(25*mm, y, str(row["qty"]))
-        pdf.drawString(30*mm, y, f"{rupiah.format_rp(row['harga'])}")
+        pdf.drawString(30*mm, y, f"{utils.format_rp(row['harga'])}")
         pdf.drawString(47.5*mm, y, f"{int(row['diskon'])}%")
-        pdf.drawString(60*mm, y, f"{rupiah.format_rp(row['after_diskon'])}")
+        pdf.drawString(60*mm, y, f"{utils.format_rp(row['after_diskon'])}")
         y -= 5*mm
         
-    # Total Harga
-    y -=4*mm
-    pdf.drawRightString(lebar- 10*mm,y, f"Total Harga : {rupiah.format_rp(grand_total)}")
     y -= 5*mm
-    pdf.drawRightString(lebar- 10*mm,y, f"Uang Tunai : {rupiah.format_rp(uang_tunai)}")
+    pdf.drawRightString(lebar-22*mm,y, f"Total Harga : ")
+    pdf.drawString(60*mm,y, f"{utils.format_rp(grand_total)}")
     y -= 5*mm
-    pdf.drawRightString(lebar- 10*mm,y, f"Uang Kembalian : {rupiah.format_rp(kembalian)}")
+    pdf.drawRightString(lebar-22*mm,y, f"Anda hemat : ")
+    pdf.drawString(60*mm,y, f"{utils.format_rp(harga_diskon)}")
     
-    
+    # Metode Cash 
+    if metode=="Cash":
+        y-=5*mm
+        pdf.drawRightString(lebar-22*mm,y, f"Uang Tunai : ")
+        pdf.drawString(60*mm,y, f"{utils.format_rp(uang_tunai)}")
+        y -= 5*mm
+        pdf.drawRightString(lebar-22*mm,y, f"Uang Kembalian : ")
+        pdf.drawString(60*mm,y, f"{utils.format_rp(kembalian)}")
+        y -= 5*mm
+        
+        
+    # Metode Cash     
+    if metode == "QRIS":
+        y-=5*mm
+        pdf.drawString(5*mm,y, f"Metode : ")
+        pdf.drawString(30*mm, y, f"{metode}")
+        y -= 5*mm
+        pdf.drawString(5*mm,y, f"Bank : ")
+        pdf.drawString(30*mm, y, f"{sumber}")
+        y -= 5*mm
+        
+        
+    if metode== "Card":
+        y-=5*mm
+        pdf.drawString(5*mm,y, f"Metode : ")
+        pdf.drawString(30*mm, y, f"{metode}")
+        y -= 5*mm
+        pdf.drawString(5*mm,y, f"No Kartu : ")
+        pdf.drawString(30*mm, y, f"{nomor_kartu}")
+        y -= 5*mm
+        pdf.drawString(5*mm,y, f"No EDC : ")
+        pdf.drawString(30*mm, y, f"{aproval_edc}")
+        y -= 5*mm
+        
+
     y-=15*mm
     pdf.setFont("Helvetica-Bold", 10)
     pdf.drawCentredString(lebar/2, y, "Terima kasih telah Berbelanja")
