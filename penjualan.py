@@ -6,7 +6,7 @@ import struk
 import utils
 
 def penjualan():
-    st.header("📦 Halaman Penjualan")
+    st.header("🛒 Halaman Penjualan")
     # Koneksi database
     conn = sqlite3.connect("sales.db")
     cursor = conn.cursor()
@@ -98,6 +98,7 @@ def penjualan():
             df_cart = pd.DataFrame(st.session_state.cart)
             df_cart['diskon'] = df_cart['diskon'].astype(float)
             df_cart['harga'] = df_cart['harga'].astype(float)
+            df_cart['nomer'] = range(1, len(df_cart) + 1)
 
             # Hitung harga diskon (misal diskon dalam persen, 0.2 untuk 20%)
             df_cart['harga_diskon'] = df_cart['diskon']* df_cart['harga']/100
@@ -216,12 +217,11 @@ def penjualan():
                 
                 for item in st.session_state.cart:
                     cursor.execute("""
-                        INSERT INTO detail_transaksi (transaksi_id, pembeli_id, pembeli_nama,
-                        barang, qty, harga_satuan, diskon, total_harga )
-                        VALUES (?, ?, ?, ?, ?, ?,?,?)
+                        INSERT INTO detail_transaksi (id_transaksi, pembeli_nama,
+                        varian_barang, qty, harga_satuan, diskon, total_harga )
+                        VALUES (?, ?, ?, ?, ?, ?,?)
                     """, (result_id,
                         buyer_id, 
-                        buyer,
                         item["kode_barang"],
                         item["qty"], 
                         item["harga"],

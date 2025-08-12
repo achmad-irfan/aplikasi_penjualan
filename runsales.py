@@ -16,7 +16,7 @@ st.set_page_config(page_title="Aplikasi Penjualan", layout="wide")
 
 
 # Sidebar menu
-menu = st.sidebar.selectbox("Menu:", ["Penjualan", "Product", "Pengeluaran"], index=1 )
+menu = st.sidebar.selectbox("Menu:", ["Penjualan", "Product", "Pengeluaran", "Laporan dan Data"], index=1 )
 
 
 
@@ -28,5 +28,7 @@ match menu:
         product.stok()
     case "Pengeluaran":
         pengeluaran.pengeluaran()
+    case "Laporan dan Data":
+        data.data()
         
 

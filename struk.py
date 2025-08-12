@@ -18,7 +18,7 @@ def cetak_struk(df_cart, grand_total, harga_diskon, metode,
     buffer= BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=(lebar, tinggi))
     
-    y= tinggi - 15*mm
+    y= tinggi - 10*mm
     #Judul
    
     pdf.setFont("Helvetica-Bold", 10)
@@ -46,7 +46,8 @@ def cetak_struk(df_cart, grand_total, harga_diskon, metode,
     # Item belanja
     pdf.setFont("Helvetica", 7)
     # Header tabel
-    pdf.drawString(5*mm, y, "Product")
+    pdf.drawString(5*mm, y, "Item")
+    pdf.drawString(13*mm, y, "Product")
     pdf.drawString(25*mm, y, "Qty")
     pdf.drawString(30*mm, y, "Harga")
     pdf.drawString(47.5*mm, y, "Diskon")
@@ -57,7 +58,8 @@ def cetak_struk(df_cart, grand_total, harga_diskon, metode,
 
     # Data dari df_cart
     for i, row in df_cart.iterrows():
-        pdf.drawString(5*mm, y, str(row["nama_barang"]))
+        pdf.drawString(5*mm, y, str(row["nomer"]))
+        pdf.drawString(13*mm, y, str(row["nama_barang"]))
         y-=4*mm
         pdf.drawString(25*mm, y, str(row["qty"]))
         pdf.drawString(30*mm, y, f"{utils.format_rp(row['harga'])}")
