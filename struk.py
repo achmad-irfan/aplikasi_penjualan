@@ -5,12 +5,13 @@ from datetime import datetime
 import streamlit as st
 import utils
 
-def cetak_struk(df_cart, grand_total, harga_diskon, metode, 
+def cetak_struk(df_cart, grand_total, harga_diskon, metode,
+                nama_file, 
                 uang_tunai=None, 
                 kembalian=None, sumber=None, 
                 nomor_kartu=None,
-                aproval_edc=None,
-                nama_file="struk.pdf"):
+                aproval_edc=None
+                ):
     # Defini ukuran struk
     lebar = 80 * mm
     tinggi = 200 * mm
@@ -31,7 +32,12 @@ def cetak_struk(df_cart, grand_total, harga_diskon, metode,
     pdf.drawString(5*mm, y, f"Tanggal: {datetime.now().strftime('%d-%m-%Y')}")
     y -= 6*mm
     pdf.drawString(5*mm, y, f"Jam: {datetime.now().strftime('%H:%M:%S')}")
-    y -= 6*mm
+    y -= 10*mm
+    
+    # id Transaksi
+    pdf.setFont("Helvetica", 8)
+    pdf.drawString(5*mm, y, f"ID Transaksi: {nama_file} ")
+    y -= 2*mm
     
     # Garis pembatas
     pdf.line(5*mm, y, lebar-5*mm, y)
@@ -52,6 +58,7 @@ def cetak_struk(df_cart, grand_total, harga_diskon, metode,
     # Data dari df_cart
     for i, row in df_cart.iterrows():
         pdf.drawString(5*mm, y, str(row["nama_barang"]))
+        y-=4*mm
         pdf.drawString(25*mm, y, str(row["qty"]))
         pdf.drawString(30*mm, y, f"{utils.format_rp(row['harga'])}")
         pdf.drawString(47.5*mm, y, f"{int(row['diskon'])}%")
@@ -108,9 +115,10 @@ def cetak_struk(df_cart, grand_total, harga_diskon, metode,
     pdf.showPage() 
     pdf.save()
     
-        # 🔹 Simpan buffer ke file fisik
+    nama_file = f"transaksi_{nama_file}.pdf"  # ubah id jadi nama file PDF
+
     with open(nama_file, "wb") as f:
         f.write(buffer.getvalue())
         
         
-    print(f"✅ Struk berhasil dibuat: {nama_file}")
+    print(f"✅ Struk berhasil dibuat: {nama_file}.pdf")

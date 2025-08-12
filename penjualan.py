@@ -11,7 +11,7 @@ def penjualan():
     conn = sqlite3.connect("sales.db")
     cursor = conn.cursor()
     # --- Ambil list barang ---
-    cursor.execute("SELECT kode_barang, nama_barang, harga_satuan, stok, diskon FROM barang")
+    cursor.execute("SELECT id_varian, nama_barang, harga_satuan, stok, diskon FROM varian_product")
     barang_list = cursor.fetchall()
 
     # --- Session state untuk keranjang ---
@@ -22,7 +22,7 @@ def penjualan():
         st.session_state.pay= []
 
     #Layout 2 kolom
-    col1, col2= st.columns(2)
+    col1, col2= st.columns([1,2])
     
     with col1:
     # Form tambah barang ke keranjang
@@ -40,7 +40,7 @@ def penjualan():
             if submitted:
                 # Cari kode, harga, diskon & stok barang
                 selected_barang = next(b for b in barang_list if b[1] == nama_barang)
-                kode_barang, _, harga, stok,diskon = selected_barang
+                id_varian, _, harga, stok,diskon = selected_barang
                 total = harga * qty
                 
                 for item in st.session_state.cart:
@@ -51,7 +51,7 @@ def penjualan():
                         break
                 else:
                     st.session_state.cart.append({
-                        "kode_barang": kode_barang,
+                        "kode_barang": id_varian,
                         "nama_barang": nama_barang,
                         "harga": harga,
                         "qty": qty,
@@ -68,24 +68,26 @@ def penjualan():
             df_cart = pd.DataFrame(st.session_state.cart)
             df_cart = df_cart.drop(columns='kode_barang')
             
-            col1_, col2_, col3_, col4_, col5_, col6_ = st.columns([2, 1, 3, 3, 3, 1])
+            col1_, col2_, col3_, col4_, col5_, col6_, col7_ = st.columns([4, 2,3, 3, 3, 3, 2])
             col1_.write("Nama Barang")
             col2_.write("Qty")
-            col3_.write("Total Harga")
-            col4_.write("Diskon")
-            col5_.write("Harga Setelah Diskon")
-            col6_.write("Aksi")
+            col3_.write("Harga Satuan")
+            col4_.write("Total Harga")
+            col5_.write("Diskon")
+            col6_.write("Harga Setelah Diskon")
+            col7_.write("Aksi")
 
             for i, row in df_cart.iterrows():
-                col1_, col2_, col3_, col4_, col5_, col6_ = st.columns([2, 1, 3, 3, 3, 1])
+                col1_, col2_, col3_, col4_, col5_, col6_,col7_ = st.columns([4, 2, 3, 3,3, 3, 2])
                 col1_.write(row["nama_barang"])
                 col2_.write(row["qty"])
-                col3_.write(f"{utils.format_rp(row['total'])}")
+                col3_.write(f"{utils.format_rp(row['harga'])}")
+                col4_.write(f"{utils.format_rp(row['total'])}")
                 diskon_jumlah = float(row['diskon'])/100 * float(row['total'])
-                col4_.write(f" \- {utils.format_rp(diskon_jumlah)}")
+                col5_.write(f" \- {utils.format_rp(diskon_jumlah)}")
                 harga_setelah_diskon = row['total'] - diskon_jumlah
-                col5_.write(f"{utils.format_rp(harga_setelah_diskon)}")
-                if col6_.button("🗑", key=f"del_{i}"):
+                col6_.write(f"{utils.format_rp(harga_setelah_diskon)}")
+                if col7_.button("🗑", key=f"del_{i}"):
                     st.session_state.cart.pop(i)
                     st.rerun()
 
@@ -181,66 +183,67 @@ def penjualan():
                     st.stop()
                 else:
                     st.success("Transaksi diapprove")
-                        
-        if st.button("Simpan Penjualan"):
-            jam_str = jam.strftime("%H:%M:%S")
-            
-            # Data Buyer
-            cursor.execute("SELECT buyer_id FROM pembeli WHERE nama=? AND hp=?", (buyer, telp))
-            result_buyer = cursor.fetchone()
-            
-            if result_buyer:
-                buyer_id = result_buyer[0]
-            else:
-                cursor.execute("INSERT INTO pembeli (nama, hp) VALUES (?, ?)", (buyer, telp))
-                buyer_id = cursor.lastrowid  
-            
-            # Data Transaksi
-            cursor.execute("""
-                INSERT INTO PENJUALAN (tanggal,jam, buyer_id, total_transaksi,metode_pembayaran)
-                values (?,?,?,?,?)                 
-                """, (tanggal,jam_str,buyer_id, grand_total, metode))
-            
-            cursor.execute("""
-                           SELECT id from penjualan WHERE buyer_id=? 
-                           and tanggal=?
-                           and jam=?
-                           and total_transaksi=?
-                           and metode_pembayaran=?
-                           """, (buyer_id,tanggal,jam_str,grand_total,metode))
-            
-            result_id = cursor.lastrowid
-            
-            
-            for item in st.session_state.cart:
+                       
+            if st.button("Simpan Penjualan"):
+                jam_str = jam.strftime("%H:%M:%S")
+                
+                # Data Buyer
+                cursor.execute("SELECT buyer_id FROM pembeli WHERE nama=? AND hp=?", (buyer, telp))
+                result_buyer = cursor.fetchone()
+                
+                if result_buyer:
+                    buyer_id = result_buyer[0]
+                else:
+                    cursor.execute("INSERT INTO pembeli (nama, hp) VALUES (?, ?)", (buyer, telp))
+                    buyer_id = cursor.lastrowid  
+                
+                # Data Transaksi
                 cursor.execute("""
-                    INSERT INTO detail_transaksi (transaksi_id, pembeli_id, pembeli_nama,
-                    barang, qty, harga_satuan, diskon, total_harga )
-                    VALUES (?, ?, ?, ?, ?, ?,?,?)
-                """, (result_id,
-                      buyer_id, 
-                      buyer,
-                      item["kode_barang"],
-                      item["qty"], 
-                      item["harga"],
-                      item["diskon"],
-                      item["total"]))
+                    INSERT INTO PENJUALAN (tanggal,jam, buyer_id, total_transaksi,metode_pembayaran)
+                    values (?,?,?,?,?)                 
+                    """, (tanggal,jam_str,buyer_id, grand_total, metode))
+                
+                cursor.execute("""
+                            SELECT id from penjualan WHERE buyer_id=? 
+                            and tanggal=?
+                            and jam=?
+                            and total_transaksi=?
+                            and metode_pembayaran=?
+                            """, (buyer_id,tanggal,jam_str,grand_total,metode))
+                
+                result_id = cursor.lastrowid
+                
+                
+                for item in st.session_state.cart:
+                    cursor.execute("""
+                        INSERT INTO detail_transaksi (transaksi_id, pembeli_id, pembeli_nama,
+                        barang, qty, harga_satuan, diskon, total_harga )
+                        VALUES (?, ?, ?, ?, ?, ?,?,?)
+                    """, (result_id,
+                        buyer_id, 
+                        buyer,
+                        item["kode_barang"],
+                        item["qty"], 
+                        item["harga"],
+                        item["diskon"],
+                        item["total"])) 
 
-            cursor.execute("""
-                UPDATE barang
-                SET stok = stok - ?
-                WHERE kode_barang = ?
-            """, (item["qty"], item["kode_barang"]))
+                    cursor.execute("""
+                        UPDATE varian_product
+                        SET stok = stok - ?
+                        WHERE id_varian = ?
+                    """, (item["qty"], item["kode_barang"]))
 
-            conn.commit()
-            st.success("Penjualan berhasil disimpan dan stok barang diperbarui!")
-            
-            # Panggil program cetak struk
-            struk.cetak_struk(df_cart, grand_total, harga_diskon, st.session_state.pay,
-                             uang_tunai=uang_tunai, kembalian=kembalian, sumber=sumber,
-                             nomor_kartu=nomor_kartu, aproval_edc=aproval_edc)
-            st.session_state.cart.clear()
-            st.rerun()
+                conn.commit()
+                st.success("Penjualan berhasil disimpan dan stok barang diperbarui!")
+                
+                # Panggil program cetak struk
+                struk.cetak_struk(df_cart, grand_total, harga_diskon, st.session_state.pay,nama_file=result_id,
+                                uang_tunai=uang_tunai,kembalian=kembalian,sumber=sumber,
+                                nomor_kartu=nomor_kartu, aproval_edc=aproval_edc)
+                st.session_state.cart.clear()
+                st.rerun()
+        
            
     if st.button("Refresh"):
         st.session_state.cart.clear()
