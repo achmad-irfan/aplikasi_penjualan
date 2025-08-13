@@ -77,7 +77,7 @@ st.markdown("""
 menu = st.sidebar.selectbox(
     "Menu:",
     ["Penjualan", "Product", "Pengeluaran", "Laporan dan Data"],
-    index=3
+    index=0
 )
 
 # ===== Navigation =====

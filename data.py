@@ -39,7 +39,7 @@ def dashboard():
     
     
     # Menu
-    menu= st.selectbox("Menu",["Dashboard","Laporan Keuangan"],index=1)
+    menu= st.selectbox("Menu",["Dashboard","Laporan Keuangan"],index=0)
     if menu=="Dashboard":
         # st.sidebar.header("📊 Filter Data")
         # start_date = st.sidebar.date_input("Dari Tanggal", df["Tanggal"].min())
