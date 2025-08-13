@@ -3,6 +3,7 @@ import pandas as pd
 import sqlite3
 import plotly.express as px
 import plotly.graph_objects as go
+import utils
 
 def dashboard():
     # Buka database
@@ -30,9 +31,15 @@ def dashboard():
                     LEFT JOIN varian_product vr 
                         ON dt.varian_barang = vr.id_varian;
                    """
-
     df= pd.read_sql_query(data_db,conn)
-    menu= st.selectbox("Menu",["Dashboard","Analisa"])
+    
+    # Ambil data pengeluaran
+    pengeluaran= "SELECT * FROM pengeluaran"
+    data_pengeluaran=pd.read_sql(pengeluaran,conn)
+    
+    
+    # Menu
+    menu= st.selectbox("Menu",["Dashboard","Laporan Keuangan"],index=1)
     if menu=="Dashboard":
         # st.sidebar.header("📊 Filter Data")
         # start_date = st.sidebar.date_input("Dari Tanggal", df["Tanggal"].min())
@@ -231,3 +238,28 @@ def dashboard():
         # =======================
         st.subheader("📋 Detail Transaksi")
         st.dataframe(df_filtered.sort_values(by="Tanggal", ascending=False), use_container_width=True)
+    
+    # Laporan Keuangan
+    if menu=="Laporan Keuangan":
+        # Pilih Bulan
+        bulan= st.selectbox("Pilih Bulan",["May","June","July"])
+        
+        # Ambil data pengeluaran
+        data_pengeluaran["tanggal"]=pd.to_datetime(data_pengeluaran["tanggal"],errors='coerce')
+        data_pengeluaran_filterd= data_pengeluaran[data_pengeluaran['tanggal'].dt.month_name()==bulan]
+        
+        # Ambil data penjualan
+        df["Tanggal"]=pd.to_datetime(df["Tanggal"],errors='coerce')
+        df_filterd= df[df['Tanggal'].dt.month_name()==bulan]
+        
+        # Laporan
+        col1, col2 = st.columns(2)
+        total_penjualan = df_filterd['Total'].sum()
+        total_pengeluaran = data_pengeluaran_filterd['nominal'].sum()
+        neraca = total_penjualan - total_pengeluaran
+
+        # Tampilkan metric
+        col1.metric("Total Penjualan", utils.format_rp(total_penjualan))
+        col2.metric("Total Pengeluaran", utils.format_rp(total_pengeluaran))
+        st.metric("Neraca Keuangan", utils.format_rp(neraca))
+        
