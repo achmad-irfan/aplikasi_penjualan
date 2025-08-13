@@ -1,5 +1,5 @@
 import streamlit as st
-import penjualan,product,pengeluaran
+import penjualan,product,pengeluaran,data
 import pathlib
 
 st.set_page_config(page_title="Aplikasi Penjualan", layout="wide")
@@ -16,7 +16,7 @@ st.set_page_config(page_title="Aplikasi Penjualan", layout="wide")
 
 
 # Sidebar menu
-menu = st.sidebar.selectbox("Menu:", ["Penjualan", "Product", "Pengeluaran", "Laporan dan Data"], index=1 )
+menu = st.sidebar.selectbox("Menu:", ["Penjualan", "Product", "Pengeluaran", "Laporan dan Data"], index=3 )
 
 
 
@@ -29,6 +29,6 @@ match menu:
     case "Pengeluaran":
         pengeluaran.pengeluaran()
     case "Laporan dan Data":
-        data.data()
+        data.dashboard()
         
 
